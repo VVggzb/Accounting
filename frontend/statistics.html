@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>统计 - 我的账本</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, sans-serif;
+            background-color: #F7F7F7;
+            padding-bottom: 80px;
+        }
+
+        .nav-bar {
+            background-color: #FFD250;
+            padding: 60px 20px 20px 20px;
+        }
+        .nav-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1F1F1F;
+        }
+
+        .month-bar {
+            background-color: #FFD250;
+            padding: 8px 20px 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .month-arrow {
+            font-size: 24px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(0,0,0,0.05);
+        }
+        .month-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F1F1F;
+        }
+
+        .chart-card {
+            background-color: #FFFFFF;
+            border-radius: 24px;
+            margin: 0 16px 16px 16px;
+            padding: 20px 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F1F1F;
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+        .pie-chart {
+            width: 100%;
+            height: 280px;
+        }
+        .total-expense {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #8E8E93;
+        }
+        .total-expense span {
+            font-size: 24px;
+            font-weight: 700;
+            color: #FF3B30;
+        }
+
+        .ranking-list {
+            background-color: #FFFFFF;
+            border-radius: 24px;
+            margin: 0 16px 16px 16px;
+            padding: 8px 0;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid #F0F0F0;
+        }
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+        .ranking-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .ranking-icon {
+            width: 44px;
+            height: 44px;
+            background-color: #FFD250;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .ranking-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .ranking-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1F1F1F;
+        }
+        .ranking-stats {
+            font-size: 12px;
+            color: #8E8E93;
+            margin-top: 2px;
+        }
+        .ranking-right {
+            text-align: right;
+        }
+        .ranking-amount {
+            font-size: 16px;
+            font-weight: 600;
+            color: #FF3B30;
+        }
+        .ranking-change {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .ranking-change.up {
+            color: #34C759;
+        }
+        .ranking-change.down {
+            color: #FF3B30;
+        }
+
+        .trend-card {
+            background-color: #FFFFFF;
+            border-radius: 24px;
+            margin: 0 16px 16px 16px;
+            padding: 20px 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+        .bar-chart {
+            width: 100%;
+            height: 240px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8E8E93;
+        }
+
+        .btn-logout {
+            width: calc(100% - 32px);
+            margin: 0 16px 20px 16px;
+            background-color: #F2F2F7;
+            border: none;
+            border-radius: 44px;
+            padding: 14px 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: #FF3B30;
+            cursor: pointer;
+        }
+
+        .bottom-tab {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFFFF;
+            display: flex;
+            padding: 10px 0 20px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            border-top: 0.5px solid #F0F0F0;
+        }
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .tab-icon {
+            font-size: 22px;
+        }
+        .tab-label {
+            font-size: 11px;
+            color: #8E8E93;
+        }
+        .tab-item.active .tab-label {
+            color: #FFD250;
+            font-weight: 600;
+        }
+        .tab-item.active .tab-icon {
+            color: #FFD250;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="nav-title">统计分析</div>
+    </div>
+
+    <div class="month-bar">
+        <div class="month-arrow" id="prevMonth">←</div>
+        <div class="month-text" id="monthDisplay">2026年05月</div>
+        <div class="month-arrow" id="nextMonth">→</div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-title">支出分类详情</div>
+        <div id="pieChart" class="pie-chart"></div>
+        <div class="total-expense">本月总支出 <span id="totalExpense">0.00</span> 元</div>
+    </div>
+
+    <div class="chart-title" style="margin-left: 16px;">消费排行</div>
+    <div class="ranking-list" id="rankingList">
+        <div class="loading">加载中...</div>
+    </div>
+
+    <div class="trend-card">
+        <div class="chart-title">每日支出趋势</div>
+        <div id="barChart" class="bar-chart"></div>
+        <div class="total-expense">日均支出 <span id="avgExpense">0.00</span> 元</div>
+    </div>
+
+    <button class="btn-logout" id="logoutBtn">退出登录</button>
+
+    <div class="bottom-tab">
+        <div class="tab-item" data-page="bill">
+            <div class="tab-icon">📒</div>
+            <div class="tab-label">账本</div>
+        </div>
+        <div class="tab-item" data-page="asset">
+            <div class="tab-icon">🎁</div>
+            <div class="tab-label">资产</div>
+        </div>
+        <div class="tab-item active" data-page="statistics">
+            <div class="tab-icon">📊</div>
+            <div class="tab-label">统计</div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/statistics.js"></script>
+</body>
+</html>

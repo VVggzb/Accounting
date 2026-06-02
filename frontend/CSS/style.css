@@ -1,0 +1,579 @@
+/* ===== 全局样式 ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, sans-serif;
+    background-color: #F7F7F7;
+    padding-bottom: 80px;
+}
+
+/* ===== 颜色变量 ===== */
+:root {
+    --primary-color: #FFD250;
+    --primary-dark: #e8bd40;
+    --bg-gray: #F7F7F7;
+    --white: #FFFFFF;
+    --text-dark: #1F1F1F;
+    --text-gray: #3A3A3C;
+    --text-light: #8E8E93;
+    --border-light: #E5E5EA;
+    --border-lighter: #F0F0F0;
+    --expense-red: #FF3B30;
+    --income-green: #34C759;
+    --danger-red: #FF3B30;
+}
+
+/* ===== 顶部导航栏 ===== */
+.nav-bar {
+    background-color: var(--primary-color);
+    padding: 60px 20px 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.nav-bar.flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.nav-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.nav-title.small {
+    font-size: 20px;
+}
+.nav-back {
+    font-size: 24px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+.nav-back:active {
+    background-color: rgba(0,0,0,0.05);
+}
+.nav-placeholder {
+    width: 36px;
+}
+
+/* ===== 月份切换栏 ===== */
+.month-bar {
+    background-color: var(--primary-color);
+    padding: 8px 20px 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.month-arrow {
+    font-size: 24px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(0,0,0,0.05);
+}
+.month-arrow:active {
+    background-color: rgba(0,0,0,0.1);
+}
+.month-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+/* ===== 卡片样式 ===== */
+.card {
+    background-color: var(--white);
+    border-radius: 24px;
+    margin: 0 16px 16px 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+.card-sm {
+    border-radius: 20px;
+    padding: 16px;
+}
+.card-flat {
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* ===== 收支概览卡片 ===== */
+.overview-row {
+    display: flex;
+    justify-content: space-between;
+    text-align: center;
+}
+.overview-item {
+    flex: 1;
+}
+.overview-label {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+}
+.overview-value {
+    font-size: 22px;
+    font-weight: 700;
+}
+.overview-value.income {
+    color: var(--income-green);
+}
+.overview-value.expense {
+    color: var(--expense-red);
+}
+.overview-value.balance {
+    color: var(--text-dark);
+}
+.divider {
+    width: 1px;
+    background-color: var(--border-light);
+    margin: 0 8px;
+}
+
+/* ===== 列表样式 ===== */
+.section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-gray);
+    margin: 20px 16px 12px 16px;
+}
+
+/* 账单/藏品条目 */
+.list-item {
+    background-color: var(--white);
+    border-radius: 16px;
+    margin: 0 16px 12px 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.list-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.list-right {
+    text-align: right;
+}
+
+/* 分类图标圆形底色 */
+.category-icon {
+    width: 48px;
+    height: 48px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+/* 日期分组 */
+.date-group {
+    margin: 0 16px 20px 16px;
+}
+.date-header {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-gray);
+    padding: 8px 4px 8px 4px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-lighter);
+}
+.daily-expense {
+    font-size: 13px;
+    color: var(--expense-red);
+    font-weight: 500;
+}
+
+/* ===== 表单样式 ===== */
+.input-group {
+    margin-bottom: 20px;
+}
+.input-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-gray);
+    margin-bottom: 8px;
+}
+.input-field {
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-bottom: 1.5px solid var(--border-light);
+    font-size: 16px;
+    color: var(--text-dark);
+    background: transparent;
+    transition: border-color 0.2s;
+    outline: none;
+}
+.input-field:focus {
+    border-bottom-color: var(--primary-color);
+}
+.input-field::placeholder {
+    color: var(--text-light);
+}
+
+/* 金额输入框 */
+.amount-input {
+    width: 100%;
+    border: none;
+    font-size: 48px;
+    font-weight: 600;
+    text-align: center;
+    outline: none;
+    background: transparent;
+    font-family: monospace;
+}
+.amount-input.expense {
+    color: var(--expense-red);
+}
+.amount-input.income {
+    color: var(--income-green);
+}
+
+/* ===== 按钮样式 ===== */
+.btn {
+    padding: 14px 0;
+    border-radius: 44px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--text-dark);
+}
+.btn-primary:active {
+    transform: scale(0.97);
+    background-color: var(--primary-dark);
+}
+.btn-secondary {
+    background-color: #F2F2F7;
+    color: var(--text-light);
+}
+.btn-secondary:active {
+    transform: scale(0.97);
+}
+.btn-danger {
+    background-color: var(--danger-red);
+    color: white;
+}
+.btn-block {
+    width: 100%;
+}
+.btn-group {
+    display: flex;
+    gap: 12px;
+    margin: 32px 16px 20px 16px;
+}
+.btn-group .btn {
+    flex: 1;
+}
+
+/* ===== 右下角悬浮按钮 ===== */
+.fab {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text-dark);
+    box-shadow: 0 4px 12px rgba(255, 210, 80, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 200;
+    border: none;
+}
+.fab:active {
+    transform: scale(0.94);
+}
+
+/* ===== 底部导航栏 ===== */
+.bottom-tab {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--white);
+    display: flex;
+    padding: 10px 0 20px 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    border-top: 0.5px solid var(--border-lighter);
+}
+.tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+.tab-item:active {
+    opacity: 0.6;
+}
+.tab-icon {
+    font-size: 22px;
+}
+.tab-label {
+    font-size: 11px;
+    color: var(--text-light);
+}
+.tab-item.active .tab-label {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+.tab-item.active .tab-icon {
+    color: var(--primary-color);
+}
+
+/* ===== 支出/收入切换选项卡 ===== */
+.type-tabs {
+    background-color: var(--white);
+    margin: 16px 20px;
+    border-radius: 48px;
+    display: flex;
+    padding: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.tab-switch {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 44px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-light);
+}
+.tab-switch.active {
+    background-color: var(--primary-color);
+    color: var(--text-dark);
+}
+
+/* ===== 分类网格 ===== */
+.category-grid {
+    background-color: var(--white);
+    margin: 0 16px;
+    border-radius: 24px;
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.category-item {
+    width: calc(25% - 9px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+.category-item.selected {
+    background-color: #FFF8E7;
+    border: 1px solid var(--primary-color);
+}
+.category-icon-small {
+    width: 48px;
+    height: 48px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+.category-name {
+    font-size: 12px;
+    color: var(--text-gray);
+    margin-top: 8px;
+}
+
+/* ===== 图片上传区域 ===== */
+.upload-section {
+    background-color: var(--white);
+    margin: 20px 16px;
+    border-radius: 24px;
+    padding: 20px;
+    text-align: center;
+}
+.upload-area {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    background-color: #F2F2F7;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.upload-area:active {
+    opacity: 0.7;
+}
+.upload-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.upload-placeholder {
+    font-size: 32px;
+    color: var(--text-light);
+    text-align: center;
+}
+.upload-placeholder span {
+    font-size: 12px;
+    display: block;
+    margin-top: 8px;
+}
+.delete-img-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* ===== 提示消息 ===== */
+.error-msg {
+    background-color: #FFF3F0;
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin: 0 16px 12px 16px;
+    font-size: 13px;
+    color: var(--danger-red);
+    display: none;
+}
+.success-msg {
+    background-color: #E8F5E9;
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin: 0 16px 12px 16px;
+    font-size: 13px;
+    color: #2E7D32;
+    display: none;
+}
+
+/* ===== 加载和空状态 ===== */
+.loading, .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-light);
+    background-color: var(--white);
+    border-radius: 20px;
+    margin: 16px;
+}
+
+/* ===== 弹窗 ===== */
+.modal-mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    visibility: hidden;
+}
+.modal-mask.show {
+    visibility: visible;
+}
+.modal-container {
+    background-color: var(--white);
+    border-radius: 24px;
+    width: 280px;
+    padding: 24px;
+    text-align: center;
+}
+.modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.modal-message {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 24px;
+}
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+}
+.modal-btn {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 44px;
+    font-size: 15px;
+    cursor: pointer;
+}
+.modal-btn.cancel {
+    background-color: #F2F2F7;
+    color: var(--text-light);
+}
+.modal-btn.confirm {
+    background-color: var(--danger-red);
+    color: white;
+}
+
+/* ===== 工具类 ===== */
+.text-center {
+    text-align: center;
+}
+.text-expense {
+    color: var(--expense-red);
+}
+.text-income {
+    color: var(--income-green);
+}
+.mt-20 {
+    margin-top: 20px;
+}
+.mb-20 {
+    margin-bottom: 20px;
+}

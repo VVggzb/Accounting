@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>藏品明细 - 我的账本</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #F7F7F7; padding-bottom: 80px; }
+        .nav-bar { background-color: #FFD250; padding: 60px 20px 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .nav-back { font-size: 24px; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .nav-title { font-size: 18px; font-weight: 600; color: #1F1F1F; flex: 1; text-align: center; }
+        .nav-placeholder { width: 36px; }
+        .collection-info-card { background-color: #FFFFFF; border-radius: 20px; margin: 16px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .collection-name { font-size: 22px; font-weight: 700; color: #1F1F1F; margin-bottom: 8px; }
+        .collection-total { font-size: 14px; color: #8E8E93; }
+        .collection-total span { font-size: 24px; font-weight: 700; color: #FF3B30; }
+        .stats-card { background-color: #FFFFFF; border-radius: 16px; margin: 0 16px 16px 16px; padding: 14px 16px; display: flex; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .stat-item { text-align: center; flex: 1; }
+        .stat-label { font-size: 12px; color: #8E8E93; margin-bottom: 4px; }
+        .stat-value { font-size: 18px; font-weight: 600; color: #1F1F1F; }
+        .section-title { font-size: 15px; font-weight: 600; color: #3A3A3C; margin: 20px 16px 12px 16px; }
+        .item-card { background-color: #FFFFFF; border-radius: 16px; margin: 0 16px 12px 16px; padding: 14px; display: flex; align-items: center; gap: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .item-image { width: 60px; height: 60px; background-color: #F2F2F7; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        .item-image img { width: 100%; height: 100%; object-fit: cover; }
+        .item-info { flex: 1; }
+        .item-name { font-size: 16px; font-weight: 500; color: #1F1F1F; margin-bottom: 6px; }
+        .item-meta { font-size: 12px; color: #8E8E93; }
+        .item-amount { font-size: 18px; font-weight: 600; color: #FF3B30; text-align: right; flex-shrink: 0; }
+        .item-actions { display: flex; gap: 12px; margin-left: 8px; flex-shrink: 0; }
+        .item-action { font-size: 18px; cursor: pointer; padding: 6px; }
+        .fab { position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; background-color: #FFD250; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 300; color: #1F1F1F; box-shadow: 0 4px 12px rgba(255,210,80,0.4); cursor: pointer; z-index: 200; border: none; }
+        .fab:active { transform: scale(0.94); }
+        .bottom-tab { position: fixed; bottom: 0; left: 0; right: 0; background-color: #FFFFFF; display: flex; padding: 10px 0 20px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); border-top: 0.5px solid #F0F0F0; }
+        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .tab-icon { font-size: 22px; }
+        .tab-label { font-size: 11px; color: #8E8E93; }
+        .tab-item.active .tab-label { color: #FFD250; font-weight: 600; }
+        .loading, .empty-state { text-align: center; padding: 48px 20px; color: #8E8E93; background-color: #FFFFFF; border-radius: 16px; margin: 16px; }
+        
+        /* 使用原生 dialog 替代自定义模态框 */
+        dialog {
+            border: none;
+            border-radius: 28px;
+            padding: 0;
+            background: transparent;
+            max-width: 360px;
+            width: 90%;
+            margin: auto;
+        }
+        dialog::backdrop {
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-container {
+            background-color: #FFFFFF;
+            border-radius: 28px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .modal-header { padding: 20px 20px 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #F0F0F0; }
+        .modal-title { font-size: 18px; font-weight: 600; color: #1F1F1F; }
+        .modal-close { font-size: 24px; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #8E8E93; background: none; border: none; }
+        .modal-body { padding: 20px; }
+        .modal-field { margin-bottom: 16px; }
+        .modal-label { font-size: 13px; font-weight: 500; color: #3A3A3C; margin-bottom: 6px; display: block; }
+        .modal-input { width: 100%; padding: 12px 0; border: none; border-bottom: 1.5px solid #E5E5EA; font-size: 15px; color: #1F1F1F; background: transparent; outline: none; }
+        .modal-input:focus { border-bottom-color: #FFD250; }
+        .image-upload-area { display: flex; align-items: center; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+        .image-preview { width: 60px; height: 60px; background-color: #F2F2F7; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .upload-btn { background-color: #F2F2F7; border: none; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 24px; }
+        .modal-btn { flex: 1; padding: 12px 0; border-radius: 44px; font-size: 15px; font-weight: 600; text-align: center; cursor: pointer; }
+        .modal-btn-cancel { background-color: #F2F2F7; color: #8E8E93; }
+        .modal-btn-save { background-color: #FFD250; color: #1F1F1F; }
+        .upload-tip { font-size: 11px; color: #8E8E93; margin-top: 4px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="nav-back" id="backBtn">←</div>
+        <div class="nav-title" id="collectionNameTitle">加载中...</div>
+        <div class="nav-placeholder"></div>
+    </div>
+
+    <div class="collection-info-card">
+        <div class="collection-name" id="collectionName">-</div>
+        <div class="collection-total">累计投入 <span id="totalAmount">0.00</span> 元</div>
+    </div>
+
+    <div class="stats-card">
+        <div class="stat-item"><div class="stat-label">藏品数量</div><div class="stat-value" id="itemCount">0</div></div>
+        <div class="stat-item"><div class="stat-label">平均单价</div><div class="stat-value" id="avgPrice">0.00</div></div>
+    </div>
+
+    <div class="section-title">📦 我的藏品</div>
+    <div id="itemList"><div class="loading">加载中...</div></div>
+
+    <div class="fab" id="addItemBtn">+</div>
+
+    <div class="bottom-tab">
+        <div class="tab-item" data-page="bill"><div class="tab-icon">📒</div><div class="tab-label">账本</div></div>
+        <div class="tab-item active" data-page="asset"><div class="tab-icon">🎁</div><div class="tab-label">资产</div></div>
+        <div class="tab-item" data-page="statistics"><div class="tab-icon">📊</div><div class="tab-label">统计</div></div>
+    </div>
+
+    <!-- 使用原生 dialog 作为弹窗 -->
+    <dialog id="itemDialog">
+        <div class="modal-container">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">新增藏品</span>
+                <button class="modal-close" id="closeModalBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-field">
+                    <label class="modal-label">藏品图片</label>
+                    <div class="image-upload-area">
+                        <div class="image-preview" id="imagePreview">
+                            <img src="assets/default.jpg" style="width:100%;height:100%;object-fit:cover;">
+                        </div>
+                        <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/jpg" style="display: none;">
+                        <button type="button" class="upload-btn" id="uploadImageBtn">上传图片</button>
+                    </div>
+                    <div class="upload-tip">支持 JPG、PNG 格式，不超过 5MB</div>
+                </div>
+                <div class="modal-field"><label class="modal-label">藏品名称</label><input type="text" class="modal-input" id="itemName" placeholder="例如：星黛露公仔"></div>
+                <div class="modal-field"><label class="modal-label">购入金额</label><input type="number" class="modal-input" id="itemAmount" placeholder="0.00" step="0.01"></div>
+                <div class="modal-field"><label class="modal-label">购买时间</label><input type="date" class="modal-input" id="purchaseDate"></div>
+                <div class="modal-buttons">
+                    <div class="modal-btn modal-btn-cancel" id="modalCancelBtn">取消</div>
+                    <div class="modal-btn modal-btn-save" id="modalSaveBtn">保存</div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        const BASE_URL = 'http://127.0.0.1:5000/api';
+        const BACKEND_URL = 'http://127.0.0.1:5000';
+        const DEFAULT_IMG = 'assets/default.jpg';
+
+        let collectionId = null;
+        let editingItemId = null;
+        let selectedFile = null;
+        let existingImageUrl = null;
+
+        function getUrlParam(name) {
+            return new URLSearchParams(window.location.search).get(name);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, (m) => {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // 弹窗控制
+        const dialog = document.getElementById('itemDialog');
+        function showModal() {
+            dialog.showModal();
+            document.body.style.overflow = 'hidden';
+        }
+        function hideModal() {
+            dialog.close();
+            document.body.style.overflow = '';
+            editingItemId = null;
+            selectedFile = null;
+        }
+
+        function showAddModal() {
+            editingItemId = null;
+            selectedFile = null;
+            existingImageUrl = null;
+            document.getElementById('modalTitle').innerText = '新增藏品';
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemAmount').value = '';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('purchaseDate').value = today;
+            document.getElementById('purchaseDate').max = today;
+            document.getElementById('imagePreview').innerHTML = `<img src="${DEFAULT_IMG}" style="width:100%;height:100%;object-fit:cover;">`;
+            showModal();
+        }
+
+        async function uploadImage(file) {
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('image', file);
+            const response = await fetch('http://127.0.0.1:5000/api/upload/image', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success && data.data && data.data.image_url) {
+                return data.data.image_url;
+            } else {
+                throw new Error(data.message || '上传失败');
+            }
+        }
+
+        async function handleSave() {
+            const name = document.getElementById('itemName').value.trim();
+            const amount = parseFloat(document.getElementById('itemAmount').value);
+            const purchaseDate = document.getElementById('purchaseDate').value;
+            if (!name) { alert('请输入藏品名称'); return; }
+            if (isNaN(amount) || amount <= 0) { alert('请输入有效金额'); return; }
+
+            let finalImageUrl = existingImageUrl;
+            if (selectedFile) {
+                try {
+                    const uploadBtn = document.getElementById('uploadImageBtn');
+                    const originalText = uploadBtn.textContent;
+                    uploadBtn.textContent = '上传中...';
+                    uploadBtn.disabled = true;
+                    finalImageUrl = await uploadImage(selectedFile);
+                    uploadBtn.textContent = originalText;
+                    uploadBtn.disabled = false;
+                } catch (err) {
+                    alert('图片上传失败: ' + err.message);
+                    return;
+                }
+            }
+
+            const data = { name, amount, purchase_date: purchaseDate || null, image_url: finalImageUrl || null };
+            const token = localStorage.getItem('token');
+            if (!token) { alert('未登录'); window.location.href = 'login.html'; return; }
+
+            const url = editingItemId ? `${BASE_URL}/collections/items/${editingItemId}` : `${BASE_URL}/collections/${collectionId}/items`;
+            try {
+                const res = await fetch(url, {
+                    method: editingItemId ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    hideModal();
+                    fetchItems();
+                } else {
+                    alert(result.message || '保存失败');
+                }
+            } catch (error) {
+                alert('网络异常');
+            }
+        }
+
+        async function fetchItems() {
+            const container = document.getElementById('itemList');
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            try {
+                const res = await fetch(`${BASE_URL}/collections/${collectionId}/items`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const result = await res.json();
+                if (!result.success) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+                const data = result.data;
+                document.getElementById('collectionName').innerText = data.collection_name;
+                document.getElementById('collectionNameTitle').innerText = data.collection_name;
+                document.getElementById('totalAmount').innerText = data.total_amount.toFixed(2);
+                const items = data.items;
+                document.getElementById('itemCount').innerText = items.length;
+                const avgPrice = items.length ? data.total_amount / items.length : 0;
+                document.getElementById('avgPrice').innerText = avgPrice.toFixed(2);
+                if (!items.length) { container.innerHTML = '<div class="empty-state">📭 暂无藏品，点击右下角➕添加</div>'; return; }
+                container.innerHTML = items.map(item => {
+                    let imgHtml = '';
+                    if (item.image_url && item.image_url !== DEFAULT_IMG && !item.image_url.includes('default.jpg')) {
+                        const imgUrl = item.image_url.startsWith('http') ? item.image_url : BACKEND_URL + item.image_url;
+                        imgHtml = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${DEFAULT_IMG}'">`;
+                    } else {
+                        imgHtml = `<img src="${DEFAULT_IMG}" style="width:100%;height:100%;object-fit:cover;">`;
+                    }
+                    return `
+                    <div class="item-card">
+                        <div class="item-image">${imgHtml}</div>
+                        <div class="item-info">
+                            <div class="item-name">${escapeHtml(item.name)}</div>
+                            <div class="item-meta">购入于 ${item.purchase_date || '日期未知'}</div>
+                        </div>
+                        <div class="item-amount">¥${item.amount.toFixed(2)}</div>
+                        <div class="item-actions">
+                            <div class="item-action edit" data-id="${item.id}" data-name="${escapeHtml(item.name)}" data-amount="${item.amount}" data-date="${item.purchase_date || ''}" data-image="${item.image_url || ''}">✏️</div>
+                            <div class="item-action delete" data-id="${item.id}" data-name="${escapeHtml(item.name)}">🗑️</div>
+                        </div>
+                    </div>`;
+                }).join('');
+                document.querySelectorAll('.item-action.edit').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        editingItemId = btn.dataset.id;
+                        existingImageUrl = btn.dataset.image || null;
+                        selectedFile = null;
+                        document.getElementById('modalTitle').innerText = '编辑藏品';
+                        document.getElementById('itemName').value = btn.dataset.name;
+                        document.getElementById('itemAmount').value = btn.dataset.amount;
+                        const today = new Date().toISOString().split('T')[0];
+                        document.getElementById('purchaseDate').value = btn.dataset.date || today;
+                        document.getElementById('purchaseDate').max = today;
+                        const previewDiv = document.getElementById('imagePreview');
+                        if (existingImageUrl && existingImageUrl !== DEFAULT_IMG) {
+                            const imgUrl = existingImageUrl.startsWith('http') ? existingImageUrl : BACKEND_URL + existingImageUrl;
+                            previewDiv.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${DEFAULT_IMG}'">`;
+                        } else {
+                            previewDiv.innerHTML = `<img src="${DEFAULT_IMG}" style="width:100%;height:100%;object-fit:cover;">`;
+                        }
+                        showModal();
+                    });
+                });
+                document.querySelectorAll('.item-action.delete').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (confirm(`确定删除「${btn.dataset.name}」吗？`)) {
+                            const token = localStorage.getItem('token');
+                            try {
+                                const res = await fetch(`${BASE_URL}/collections/items/${btn.dataset.id}`, {
+                                    method: 'DELETE',
+                                    headers: { Authorization: `Bearer ${token}` }
+                                });
+                                const result = await res.json();
+                                if (result.success) fetchItems();
+                                else alert(result.message || '删除失败');
+                            } catch (error) { alert('网络异常'); }
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
+            }
+        }
+
+        function initTabBar() {
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const page = tab.dataset.page;
+                    if (page === 'bill') location.href = 'bill.html';
+                    if (page === 'statistics') location.href = 'statistics.html';
+                });
+            });
+        }
+
+        function initImageSelection() {
+            const uploadBtn = document.getElementById('uploadImageBtn');
+            const fileInput = document.getElementById('imageFileInput');
+            const previewDiv = document.getElementById('imagePreview');
+            if (!uploadBtn || !fileInput || !previewDiv) return;
+
+            uploadBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileInput.click();
+            };
+
+            fileInput.onchange = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) { alert('图片不能超过5MB'); fileInput.value = ''; return; }
+                if (!file.type.startsWith('image/')) { alert('请选择图片文件'); fileInput.value = ''; return; }
+
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    previewDiv.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                };
+                reader.readAsDataURL(file);
+
+                selectedFile = file;
+                existingImageUrl = null;
+                fileInput.value = '';
+            };
+        }
+
+        async function init() {
+            const token = localStorage.getItem('token');
+            if (!token) return location.href = 'login.html';
+            collectionId = getUrlParam('id');
+            if (!collectionId) return location.href = 'asset.html';
+            await fetchItems();
+            initTabBar();
+            initImageSelection();
+            document.getElementById('backBtn').onclick = () => location.href = 'asset.html';
+            document.getElementById('addItemBtn').onclick = showAddModal;
+            document.getElementById('closeModalBtn').onclick = hideModal;
+            document.getElementById('modalCancelBtn').onclick = hideModal;
+            document.getElementById('modalSaveBtn').onclick = (e) => { e.preventDefault(); handleSave(); };
+        }
+        init();
+    </script>
+</body>
+</html>
