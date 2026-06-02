@@ -1,6 +1,6 @@
 // asset.js - 资产首页逻辑（支持新增和编辑合集）
 
-const BASE_URL = 'http://127.0.0.1:5000/api';
+const BASE_URL = 'http://tool.gvzbz.fun/api';
 
 let editingCollectionId = null;
 
