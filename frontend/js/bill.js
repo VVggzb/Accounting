@@ -2,7 +2,7 @@
 
 console.log('bill.js 已加载');
 
-const BASE_URL = 'http://127.0.0.1:5000/api';
+const BASE_URL = 'http://tool.gvzbz.fun/api';
 
 // 替换 let currentYear = 2026; let currentMonth = 5;
 const now = new Date();
