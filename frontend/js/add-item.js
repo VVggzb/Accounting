@@ -1,5 +1,5 @@
 // add-item.js
-const BASE_URL = 'https://tool.gvzbz.fun/api';
+
 
 function getToken() {
     return localStorage.getItem('token');
