@@ -5,7 +5,7 @@ hideModal = function() {
     console.log('hideModal 被调用，但已禁用');
 };
 
-const API_BASE_URL = 'https://tool.gvzbz.fun/api';
+const BASE_URL = 'https://tool.gvzbz.fun/api';
 
 let collectionId = null;
 let editingItemId = null;
