@@ -43,7 +43,7 @@ async function authFetch(url, options = {}) {
         'Authorization': `Bearer ${token}`
     };
     
-    const response = await fetch(`${API_BASE_URL}${url}`, {
+    const response = await fetch(`${BASE_URL}${url}`, {
         ...options,
         headers
     });
