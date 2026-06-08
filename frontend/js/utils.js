@@ -1,5 +1,5 @@
 // ===== API 配置 =====
-const API_BASE_URL = 'http://tool.gvzbz.fun/api';
+const API_BASE_URL = 'https://tool.gvzbz.fun/api';
 
 // ===== 获取 token =====
 function getToken() {
