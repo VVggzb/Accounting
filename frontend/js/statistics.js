@@ -1,6 +1,5 @@
 // statistics.js - 统计页面逻辑
 
-const BASE_URL = 'https://tool.gvzbz.fun/api';
 
 // 替换 let currentYear = 2026; let currentMonth = 5;
 const now = new Date();
