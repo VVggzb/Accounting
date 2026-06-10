@@ -110,7 +110,7 @@ async function fetchBills() {
                         <div class="category-icon">${getCategoryIcon(item.category)}</div>
                         <div class="bill-info">
                             <div class="bill-category">${item.category}</div>
-                            <div class="bill-note-time">${item.note || '无备注'} · ${item.time}</div>
+                            <div class="bill-note-time">${item.note || '无备注'}</div>
                         </div>
                     </div>
                     <div class="bill-amount ${amountClass}">${sign} ¥${formatNumber(item.amount)}</div>
