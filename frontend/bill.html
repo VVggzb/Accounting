@@ -160,6 +160,30 @@
             color: #34C759;
         }
 
+        /* 编辑删除按钮样式 */
+        .bill-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 12px;
+        }
+        .edit-bill-btn, .delete-bill-btn {
+            background: none;
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .edit-bill-btn {
+            color: #FFD250;
+        }
+        .delete-bill-btn {
+            color: #FF3B30;
+        }
+        .edit-bill-btn:hover, .delete-bill-btn:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+
         .fab {
             position: fixed;
             bottom: 80px;
