@@ -1,6 +1,5 @@
 // statistics.js - 统计页面逻辑
 
-
 // 替换 let currentYear = 2026; let currentMonth = 5;
 const now = new Date();
 let currentYear = now.getFullYear();
@@ -54,14 +53,6 @@ async function loadRankingData() {
         const result = await res.json();
         if (result.success && result.data.length > 0) {
             container.innerHTML = result.data.map(item => {
-                let changeHtml = '';
-                if (item.percent_change !== null && item.percent_change !== undefined) {
-                    if (item.percent_change > 0) changeHtml = `<div class="ranking-change up">↑ ${item.percent_change}%</div>`;
-                    else if (item.percent_change < 0) changeHtml = `<div class="ranking-change down">↓ ${Math.abs(item.percent_change)}%</div>`;
-                    else changeHtml = `<div class="ranking-change">→ 持平</div>`;
-                } else {
-                    changeHtml = `<div class="ranking-change">首次记账</div>`;
-                }
                 return `<div class="ranking-item">
                     <div class="ranking-left">
                         <div class="ranking-icon">${CATEGORY_ICON[item.category] || '📌'}</div>
@@ -72,7 +63,6 @@ async function loadRankingData() {
                     </div>
                     <div class="ranking-right">
                         <div class="ranking-amount">¥${formatNumber(item.amount)}</div>
-                        ${changeHtml}
                     </div>
                 </div>`;
             }).join('');
