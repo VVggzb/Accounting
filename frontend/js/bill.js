@@ -2,14 +2,15 @@
 
 console.log('bill.js 已加载');
 
-
-
 // 替换 let currentYear = 2026; let currentMonth = 5;
 const now = new Date();
 let currentYear = now.getFullYear();
 let currentMonth = now.getMonth() + 1;  // 月份从 0 开始，需要 +1
 // 当前弹窗选择类型
 let currentModalType = 'expense';
+
+// 当前编辑的账单ID（用于编辑模式）
+let editingBillId = null;
 
 // 分类数据
 const EXPENSE_CATEGORIES = ['餐饮', '购物', '服饰', '日用', '数码', '美妆', '护肤', '应用软件', '交通', '娱乐', '医疗', '学习', '运动', '人情'];
@@ -45,7 +46,6 @@ async function fetchOverview() {
     if (!token) return;
     
     try {
-        // 修改：使用正确的后端接口 /bills/overview
         const res = await fetch(`${BASE_URL}/bills/overview?year=${currentYear}&month=${currentMonth}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -104,7 +104,8 @@ async function fetchBills() {
             group.items.forEach(item => {
                 const amountClass = item.type === 'expense' ? 'expense' : 'income';
                 const sign = item.type === 'expense' ? '-' : '+';
-                html += `<div class="bill-item">
+                // ========= 修改1：在账单项中添加编辑和删除按钮 =========
+                html += `<div class="bill-item" data-id="${item.id}">
                     <div class="bill-left">
                         <div class="category-icon">${getCategoryIcon(item.category)}</div>
                         <div class="bill-info">
@@ -113,15 +114,97 @@ async function fetchBills() {
                         </div>
                     </div>
                     <div class="bill-amount ${amountClass}">${sign} ¥${formatNumber(item.amount)}</div>
+                    <div class="bill-actions">
+                        <button class="edit-bill-btn" data-id="${item.id}" data-type="${item.type}" data-category="${item.category}" data-amount="${item.amount}" data-date="${group.date}" data-note="${item.note || ''}" data-account="${item.account || ''}">编辑</button>
+                        <button class="delete-bill-btn" data-id="${item.id}">删除</button>
+                    </div>
                 </div>`;
             });
             html += `</div>`;
         });
         container.innerHTML = html;
+        
+        // ========= 修改2：绑定编辑和删除按钮事件 =========
+        // 删除按钮事件
+        document.querySelectorAll('.delete-bill-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!confirm('确定删除这条账单吗？')) return;
+                const billId = btn.dataset.id;
+                const token = localStorage.getItem('token');
+                try {
+                    const res = await fetch(`${BASE_URL}/bills/${billId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        fetchOverview();
+                        fetchBills();
+                    } else {
+                        alert(result.message || '删除失败');
+                    }
+                } catch (error) {
+                    alert('网络异常');
+                }
+            });
+        });
+        
+        // 编辑按钮事件
+        document.querySelectorAll('.edit-bill-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // 从 data-* 属性中获取账单数据
+                const billData = {
+                    id: btn.dataset.id,
+                    type: btn.dataset.type,
+                    category: btn.dataset.category,
+                    amount: btn.dataset.amount,
+                    date: btn.dataset.date,
+                    note: btn.dataset.note,
+                    account: btn.dataset.account
+                };
+                openEditModal(billData);
+            });
+        });
+        
     } catch (e) {
         console.error('fetchBills 错误:', e);
         container.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
     }
+}
+
+// ========= 修改3：打开编辑弹窗函数 =========
+function openEditModal(bill) {
+    // 设置编辑状态
+    editingBillId = bill.id;
+    
+    // 设置弹窗标题
+    document.getElementById('modalTitle').innerText = '编辑账单';
+    
+    // 设置类型（支出/收入）
+    currentModalType = bill.type;
+    const typeTabs = document.querySelectorAll('.type-tab');
+    typeTabs.forEach(tab => {
+        if (tab.dataset.type === bill.type) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+    
+    // 重新渲染分类下拉框
+    renderModalCategory();
+    
+    // 填充表单数据
+    document.getElementById('modalCategory').value = bill.category;
+    document.getElementById('modalAmount').value = bill.amount;
+    document.getElementById('modalDate').value = bill.date;
+    document.getElementById('modalAccount').value = bill.account || '';
+    document.getElementById('modalNote').value = bill.note || '';
+    
+    // 打开弹窗
+    showModal();
 }
 
 function changeMonth(delta) {
@@ -195,6 +278,10 @@ function hideModal() {
 }
 
 function resetModalForm() {
+    // ========= 修改4：重置时清除编辑状态 =========
+    editingBillId = null;
+    document.getElementById('modalTitle').innerText = '记一笔';
+    
     currentModalType = 'expense';
     const typeTabs = document.querySelectorAll('.type-tab');
     typeTabs.forEach(tab => {
@@ -251,17 +338,36 @@ async function handleSaveBill() {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/bills`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(data)
-        });
+        // ========= 修改5：区分新增和编辑，使用不同的请求方法和URL =========
+        let response;
+        if (editingBillId) {
+            // 编辑模式：PUT 请求
+            response = await fetch(`${BASE_URL}/bills/${editingBillId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+        } else {
+            // 新增模式：POST 请求
+            response = await fetch(`${BASE_URL}/bills`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+        }
+        
         const result = await response.json();
         if (result.success) {
             hideModal();
+            // 清除编辑状态
+            editingBillId = null;
+            // 刷新数据
             fetchOverview();
             fetchBills();
         } else {
