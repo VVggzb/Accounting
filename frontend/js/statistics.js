@@ -1,6 +1,6 @@
 // statistics.js - 统计页面逻辑
 
-// 替换 let currentYear = 2026; let currentMonth = 5;
+// 替换 let  currentYear = 2026; let currentMonth = 5;
 const now = new Date();
 let currentYear = now.getFullYear();
 let currentMonth = now.getMonth() + 1;  // 月份从 0 开始，需要 +1
