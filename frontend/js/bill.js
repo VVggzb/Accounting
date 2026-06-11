@@ -2,17 +2,12 @@
 
 console.log('bill.js 已加载');
 
-// 替换 let currentYear = 2026; let currentMonth = 5;
 const now = new Date();
 let currentYear = now.getFullYear();
-let currentMonth = now.getMonth() + 1;  // 月份从 0 开始，需要 +1
-// 当前弹窗选择类型
+let currentMonth = now.getMonth() + 1;
 let currentModalType = 'expense';
-
-// 当前编辑的账单ID（用于编辑模式）
 let editingBillId = null;
 
-// 分类数据
 const EXPENSE_CATEGORIES = ['餐饮', '购物', '服饰', '日用', '数码', '美妆', '护肤', '应用软件', '交通', '娱乐', '医疗', '学习', '运动', '人情'];
 const INCOME_CATEGORIES = ['生活费', '红包', '兼职', '副业'];
 
@@ -32,65 +27,39 @@ function getCategoryIcon(category) {
 
 function updateMonthDisplay() {
     const elem = document.getElementById('monthDisplay');
-    if (elem) {
-        elem.innerText = `${currentYear}年${String(currentMonth).padStart(2, '0')}月`;
-    } else {
-        console.error('monthDisplay 元素不存在');
-    }
+    if (elem) elem.innerText = `${currentYear}年${String(currentMonth).padStart(2, '0')}月`;
 }
 
 async function fetchOverview() {
-    console.log('fetchOverview 开始执行');
     const token = localStorage.getItem('token');
-    console.log('token 是否存在:', token ? '是' : '否');
     if (!token) return;
-    
     try {
         const res = await fetch(`${BASE_URL}/bills/overview?year=${currentYear}&month=${currentMonth}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
-        console.log('概览数据:', data);
-        
         if (data.success) {
-            const totalIncomeElem = document.getElementById('totalIncome');
-            const totalExpenseElem = document.getElementById('totalExpense');
-            const balanceElem = document.getElementById('balance');
-            
-            if (totalIncomeElem) totalIncomeElem.innerText = formatNumber(data.data.total_income);
-            if (totalExpenseElem) totalExpenseElem.innerText = formatNumber(data.data.total_expense);
-            if (balanceElem) balanceElem.innerText = formatNumber(data.data.balance);
-        } else {
-            console.error('概览接口返回失败:', data);
+            document.getElementById('totalIncome').innerText = formatNumber(data.data.total_income);
+            document.getElementById('totalExpense').innerText = formatNumber(data.data.total_expense);
+            document.getElementById('balance').innerText = formatNumber(data.data.balance);
         }
-    } catch (e) {
-        console.error('fetchOverview 错误:', e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 async function fetchBills() {
-    console.log('fetchBills 开始执行');
     const token = localStorage.getItem('token');
     if (!token) return;
-    
     const container = document.getElementById('billList');
-    if (!container) {
-        console.error('billList 元素不存在');
-        return;
-    }
-    
+    if (!container) return;
     try {
         const res = await fetch(`${BASE_URL}/bills?year=${currentYear}&month=${currentMonth}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const result = await res.json();
-        console.log('账单列表数据:', result);
-
         if (!result.success || !result.data || result.data.length === 0) {
             container.innerHTML = '<div class="empty-state">📭 暂无账单，点击右下角➕添加</div>';
             return;
         }
-
         const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
         let html = '';
         result.data.forEach(group => {
@@ -104,7 +73,6 @@ async function fetchBills() {
             group.items.forEach(item => {
                 const amountClass = item.type === 'expense' ? 'expense' : 'income';
                 const sign = item.type === 'expense' ? '-' : '+';
-                // ========= 修改1：在账单项中添加编辑和删除按钮 =========
                 html += `<div class="bill-item" data-id="${item.id}">
                     <div class="bill-left">
                         <div class="category-icon">${getCategoryIcon(item.category)}</div>
@@ -123,9 +91,7 @@ async function fetchBills() {
             html += `</div>`;
         });
         container.innerHTML = html;
-        
-        // ========= 修改2：绑定编辑和删除按钮事件 =========
-        // 删除按钮事件
+
         document.querySelectorAll('.delete-bill-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -149,12 +115,10 @@ async function fetchBills() {
                 }
             });
         });
-        
-        // 编辑按钮事件
+
         document.querySelectorAll('.edit-bill-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // 从 data-* 属性中获取账单数据
                 const billData = {
                     id: btn.dataset.id,
                     type: btn.dataset.type,
@@ -167,56 +131,40 @@ async function fetchBills() {
                 openEditModal(billData);
             });
         });
-        
     } catch (e) {
-        console.error('fetchBills 错误:', e);
+        console.error(e);
         container.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
     }
 }
 
-// ========= 修改3：打开编辑弹窗函数 =========
 function openEditModal(bill) {
-    // 设置编辑状态
     editingBillId = bill.id;
-    
-    // 设置弹窗标题
     document.getElementById('modalTitle').innerText = '编辑账单';
-    
-    // 设置类型（支出/收入）
     currentModalType = bill.type;
     const typeTabs = document.querySelectorAll('.type-tab');
     typeTabs.forEach(tab => {
-        if (tab.dataset.type === bill.type) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
+        if (tab.dataset.type === bill.type) tab.classList.add('active');
+        else tab.classList.remove('active');
     });
-    
-    // 重新渲染分类下拉框
     renderModalCategory();
-    
-    // 填充表单数据
     document.getElementById('modalCategory').value = bill.category;
     document.getElementById('modalAmount').value = bill.amount;
     document.getElementById('modalDate').value = bill.date;
     document.getElementById('modalAccount').value = bill.account || '';
     document.getElementById('modalNote').value = bill.note || '';
-    
-    // 打开弹窗
-    showModal();
+    // 直接打开弹窗，不重置表单（避免清空编辑状态）
+    const modal = document.getElementById('billModal');
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function changeMonth(delta) {
     let newMonth = currentMonth + delta;
     let newYear = currentYear;
-    if (newMonth < 1) {
-        newMonth = 12;
-        newYear--;
-    } else if (newMonth > 12) {
-        newMonth = 1;
-        newYear++;
-    }
+    if (newMonth < 1) { newMonth = 12; newYear--; }
+    else if (newMonth > 12) { newMonth = 1; newYear++; }
     currentYear = newYear;
     currentMonth = newMonth;
     updateMonthDisplay();
@@ -225,47 +173,30 @@ function changeMonth(delta) {
 }
 
 function initTabBar() {
-    const tabs = document.querySelectorAll('.tab-item');
-    if (!tabs.length) {
-        console.warn('没有找到 .tab-item 元素');
-        return;
-    }
-    tabs.forEach(tab => {
+    document.querySelectorAll('.tab-item').forEach(tab => {
         tab.addEventListener('click', () => {
             const page = tab.dataset.page;
-            if (page === 'asset') {
-                window.location.href = 'asset.html';
-            } else if (page === 'statistics') {
-                window.location.href = 'statistics.html';
-            }
+            if (page === 'asset') window.location.href = 'asset.html';
+            else if (page === 'statistics') window.location.href = 'statistics.html';
         });
     });
 }
 
-// ========= 弹窗分类渲染 =========
 function renderModalCategory() {
     const categories = currentModalType === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
     const select = document.getElementById('modalCategory');
-    if (!select) {
-        console.warn('modalCategory 元素不存在');
-        return;
-    }
+    if (!select) return;
     let html = '<option value="">请选择分类</option>';
-    categories.forEach(cat => {
-        html += `<option value="${cat}">${cat}</option>`;
-    });
+    categories.forEach(cat => html += `<option value="${cat}">${cat}</option>`);
     select.innerHTML = html;
 }
 
-// ========= 弹窗开关 =========
 function showModal() {
     resetModalForm();
     const modal = document.getElementById('billModal');
     if (modal) {
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
-    } else {
-        console.error('billModal 元素不存在');
     }
 }
 
@@ -278,10 +209,8 @@ function hideModal() {
 }
 
 function resetModalForm() {
-    // ========= 修改4：重置时清除编辑状态 =========
     editingBillId = null;
     document.getElementById('modalTitle').innerText = '记一笔';
-    
     currentModalType = 'expense';
     const typeTabs = document.querySelectorAll('.type-tab');
     typeTabs.forEach(tab => {
@@ -289,18 +218,13 @@ function resetModalForm() {
         else tab.classList.remove('active');
     });
     renderModalCategory();
-    const amountInput = document.getElementById('modalAmount');
-    const noteInput = document.getElementById('modalNote');
-    const accountSelect = document.getElementById('modalAccount');
-    const dateInput = document.getElementById('modalDate');
-    if (amountInput) amountInput.value = '';
-    if (noteInput) noteInput.value = '';
-    if (accountSelect) accountSelect.value = '';
+    document.getElementById('modalAmount').value = '';
+    document.getElementById('modalNote').value = '';
+    document.getElementById('modalAccount').value = '';
     const today = new Date().toISOString().split('T')[0];
-    if (dateInput) dateInput.value = today;
+    document.getElementById('modalDate').value = today;
 }
 
-// ========= 保存账单 =========
 async function handleSaveBill() {
     const category = document.getElementById('modalCategory')?.value;
     const amount = parseFloat(document.getElementById('modalAmount')?.value);
@@ -308,152 +232,78 @@ async function handleSaveBill() {
     const account = document.getElementById('modalAccount')?.value;
     const note = document.getElementById('modalNote')?.value;
 
-    if (!category) {
-        alert('请选择分类');
-        return;
-    }
-    if (isNaN(amount) || amount <= 0) {
-        alert('请输入有效金额');
-        return;
-    }
-    if (!date) {
-        alert('请选择日期');
-        return;
-    }
+    if (!category) { alert('请选择分类'); return; }
+    if (isNaN(amount) || amount <= 0) { alert('请输入有效金额'); return; }
+    if (!date) { alert('请选择日期'); return; }
 
     const data = {
         type: currentModalType,
-        category: category,
-        amount: amount,
-        date: date,
+        category,
+        amount,
+        date,
         account: account || '',
         note: note || ''
     };
-
     const token = localStorage.getItem('token');
-    if (!token) {
-        alert('未登录，请重新登录');
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!token) { alert('未登录'); window.location.href = 'login.html'; return; }
 
     try {
-        // ========= 修改5：区分新增和编辑，使用不同的请求方法和URL =========
         let response;
         if (editingBillId) {
-            // 编辑模式：PUT 请求
             response = await fetch(`${BASE_URL}/bills/${editingBillId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(data)
             });
         } else {
-            // 新增模式：POST 请求
             response = await fetch(`${BASE_URL}/bills`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(data)
             });
         }
-        
         const result = await response.json();
         if (result.success) {
             hideModal();
-            // 清除编辑状态
             editingBillId = null;
-            // 刷新数据
             fetchOverview();
             fetchBills();
         } else {
             alert(result.message || '保存失败');
         }
     } catch (error) {
-        console.error('保存失败:', error);
+        console.error(error);
         alert('网络异常，请检查后端服务');
     }
 }
 
-// ========= 初始化 =========
 function init() {
-    console.log('init 函数执行了');
-    
-    // 检查必要的 DOM 元素
-    const requiredElements = ['monthDisplay', 'totalIncome', 'totalExpense', 'balance', 'billList', 'addBillBtn'];
-    for (const id of requiredElements) {
-        if (!document.getElementById(id)) {
-            console.error(`缺少必要元素: ${id}`);
-        }
-    }
-    
     const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
-
+    if (!token) return window.location.href = 'login.html';
     updateMonthDisplay();
     fetchOverview();
     fetchBills();
     initTabBar();
 
-    // 右下角➕打开弹窗
-    const addBtn = document.getElementById('addBillBtn');
-    if (addBtn) {
-        addBtn.addEventListener('click', showModal);
-    } else {
-        console.error('addBillBtn 元素不存在');
-    }
-
-    // 关闭弹窗（× / 取消 / 遮罩）
-    const closeBtn = document.getElementById('closeModalBtn');
-    if (closeBtn) closeBtn.addEventListener('click', hideModal);
-    
-    const cancelBtn = document.getElementById('modalCancelBtn');
-    if (cancelBtn) cancelBtn.addEventListener('click', hideModal);
-    
-    const modal = document.getElementById('billModal');
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) hideModal();
-        });
-    }
-
-    // 类型切换（支出 / 收入）
-    const typeTabs = document.querySelectorAll('.type-tab');
-    typeTabs.forEach(tab => {
+    document.getElementById('addBillBtn').addEventListener('click', showModal);
+    document.getElementById('closeModalBtn').addEventListener('click', hideModal);
+    document.getElementById('modalCancelBtn').addEventListener('click', hideModal);
+    document.getElementById('modalSaveBtn').addEventListener('click', handleSaveBill);
+    document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
+    document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    });
+    // 类型切换
+    document.querySelectorAll('.type-tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            typeTabs.forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentModalType = tab.dataset.type;
             renderModalCategory();
         });
     });
-
-    // 保存按钮
-    const saveBtn = document.getElementById('modalSaveBtn');
-    if (saveBtn) saveBtn.addEventListener('click', handleSaveBill);
-
-    // 月份切换
-    const prevBtn = document.getElementById('prevMonth');
-    const nextBtn = document.getElementById('nextMonth');
-    if (prevBtn) prevBtn.addEventListener('click', () => changeMonth(-1));
-    if (nextBtn) nextBtn.addEventListener('click', () => changeMonth(1));
-
-    // 退出登录
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            localStorage.clear();
-            window.location.href = 'login.html';
-        });
-    }
 }
 
-// 启动
 init();
