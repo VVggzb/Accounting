@@ -1,3 +1,4 @@
+
 // statistics.js - 统计页面逻辑
 
 // 替换 let  currentYear = 2026; let currentMonth = 5;
