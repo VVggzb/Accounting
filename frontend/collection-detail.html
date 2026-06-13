@@ -251,88 +251,92 @@
         }
 
         async function fetchItems() {
-            const container = document.getElementById('itemList');
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            try {
-                const res = await fetch(`${BASE_URL}/collections/${collectionId}/items`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const result = await res.json();
-                if (!result.success) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
-                const data = result.data;
-                document.getElementById('collectionName').innerText = data.collection_name;
-                document.getElementById('collectionNameTitle').innerText = data.collection_name;
-                document.getElementById('totalAmount').innerText = data.total_amount.toFixed(2);
-                const items = data.items;
-                document.getElementById('itemCount').innerText = items.length;
-                const avgPrice = items.length ? data.total_amount / items.length : 0;
-                document.getElementById('avgPrice').innerText = avgPrice.toFixed(2);
-                if (!items.length) { container.innerHTML = '<div class="empty-state">📭 暂无藏品，点击右下角➕添加</div>'; return; }
-                container.innerHTML = items.map(item => {
-                    let imgHtml = '';
-                    if (item.image_url && item.image_url !== DEFAULT_IMG && !item.image_url.includes('default.jpg')) {
-                        const imgUrl = item.image_url.startsWith('http') ? item.image_url : BACKEND_URL + item.image_url;
-                        imgHtml = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${DEFAULT_IMG}'">`;
-                    } else {
-                        imgHtml = `<img src="${DEFAULT_IMG}" style="width:100%;height:100%;object-fit:cover;">`;
-                    }
-                    return `
-                    <div class="item-card">
-                        <div class="item-image">${imgHtml}</div>
-                        <div class="item-info">
-                            <div class="item-name">${escapeHtml(item.name)}</div>
-                            <div class="item-meta">购入于 ${item.purchase_date || '日期未知'}</div>
-                        </div>
-                        <div class="item-amount">¥${item.amount.toFixed(2)}</div>
-                        <div class="item-actions">
-                            <div class="item-action edit" data-id="${item.id}" data-name="${escapeHtml(item.name)}" data-amount="${item.amount}" data-date="${item.purchase_date || ''}" data-image="${item.image_url || ''}">✏️</div>
-                            <div class="item-action delete" data-id="${item.id}" data-name="${escapeHtml(item.name)}">🗑️</div>
-                        </div>
-                    </div>`;
-                }).join('');
-                document.querySelectorAll('.item-action.edit').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        editingItemId = btn.dataset.id;
-                        existingImageUrl = btn.dataset.image || null;
-                        selectedFile = null;
-                        document.getElementById('modalTitle').innerText = '编辑藏品';
-                        document.getElementById('itemName').value = btn.dataset.name;
-                        document.getElementById('itemAmount').value = btn.dataset.amount;
-                        const today = new Date().toISOString().split('T')[0];
-                        document.getElementById('purchaseDate').value = btn.dataset.date || today;
-                        document.getElementById('purchaseDate').max = today;
-                        const previewDiv = document.getElementById('imagePreview');
-                        if (existingImageUrl && existingImageUrl !== DEFAULT_IMG) {
-                            const imgUrl = existingImageUrl.startsWith('http') ? existingImageUrl : BACKEND_URL + existingImageUrl;
-                            previewDiv.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${DEFAULT_IMG}'">`;
-                        } else {
-                            previewDiv.innerHTML = `<img src="${DEFAULT_IMG}" style="width:100%;height:100%;object-fit:cover;">`;
-                        }
-                        showModal();
-                    });
-                });
-                document.querySelectorAll('.item-action.delete').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        if (confirm(`确定删除「${btn.dataset.name}」吗？`)) {
-                            const token = localStorage.getItem('token');
-                            try {
-                                const res = await fetch(`${BASE_URL}/collections/items/${btn.dataset.id}`, {
-                                    method: 'DELETE',
-                                    headers: { Authorization: `Bearer ${token}` }
-                                });
-                                const result = await res.json();
-                                if (result.success) fetchItems();
-                                else alert(result.message || '删除失败');
-                            } catch (error) { alert('网络异常'); }
-                        }
-                    });
-                });
-            } catch (error) {
-                console.error(error);
-                container.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
+    const container = document.getElementById('itemList');
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${BASE_URL}/collections/${collectionId}/items`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await res.json();
+        if (!result.success) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+        const data = result.data;
+        document.getElementById('collectionName').innerText = data.collection_name;
+        document.getElementById('collectionNameTitle').innerText = data.collection_name;
+        document.getElementById('totalAmount').innerText = data.total_amount.toFixed(2);
+        const items = data.items;
+        document.getElementById('itemCount').innerText = items.length;
+        const avgPrice = items.length ? data.total_amount / items.length : 0;
+        document.getElementById('avgPrice').innerText = avgPrice.toFixed(2);
+        if (!items.length) { container.innerHTML = '<div class="empty-state">📭 暂无藏品，点击右下角➕添加</div>'; return; }
+        container.innerHTML = items.map(item => {
+            let imgHtml = '';
+            if (item.image_url && item.image_url !== DEFAULT_IMG && !item.image_url.includes('default.jpg')) {
+                const imgUrl = item.image_url.startsWith('http') ? item.image_url : BACKEND_URL + item.image_url;
+                imgHtml = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${DEFAULT_IMG}'">`;
+            } else {
+                imgHtml = `<img src="${DEFAULT_IMG}" style="width:100%;height:100%;object-fit:cover;">`;
             }
-        }
+            return `
+            <div class="item-card">
+                <div class="item-image">${imgHtml}</div>
+                <div class="item-info">
+                    <div class="item-name">${escapeHtml(item.name)}</div>
+                    <div class="item-meta">购入于 ${item.purchase_date || '日期未知'}</div>
+                </div>
+                <div class="item-amount">¥${item.amount.toFixed(2)}</div>
+                <div class="item-actions">
+                    <button class="edit-item-btn" data-id="${item.id}" data-name="${escapeHtml(item.name)}" data-amount="${item.amount}" data-date="${item.purchase_date || ''}" data-image="${item.image_url || ''}">编辑</button>
+                    <button class="delete-item-btn" data-id="${item.id}" data-name="${escapeHtml(item.name)}">删除</button>
+                </div>
+            </div>`;
+        }).join('');
+
+        // 编辑按钮事件
+        document.querySelectorAll('.edit-item-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                editingItemId = btn.dataset.id;
+                existingImageUrl = btn.dataset.image || null;
+                selectedFile = null;
+                document.getElementById('modalTitle').innerText = '编辑藏品';
+                document.getElementById('itemName').value = btn.dataset.name;
+                document.getElementById('itemAmount').value = btn.dataset.amount;
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('purchaseDate').value = btn.dataset.date || today;
+                document.getElementById('purchaseDate').max = today;
+                const previewDiv = document.getElementById('imagePreview');
+                if (existingImageUrl && existingImageUrl !== DEFAULT_IMG) {
+                    const imgUrl = existingImageUrl.startsWith('http') ? existingImageUrl : BACKEND_URL + existingImageUrl;
+                    previewDiv.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${DEFAULT_IMG}'">`;
+                } else {
+                    previewDiv.innerHTML = `<img src="${DEFAULT_IMG}" style="width:100%;height:100%;object-fit:cover;">`;
+                }
+                showModal();
+            });
+        });
+
+        // 删除按钮事件
+        document.querySelectorAll('.delete-item-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (confirm(`确定删除「${btn.dataset.name}」吗？`)) {
+                    const token = localStorage.getItem('token');
+                    try {
+                        const res = await fetch(`${BASE_URL}/collections/items/${btn.dataset.id}`, {
+                            method: 'DELETE',
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        const result = await res.json();
+                        if (result.success) fetchItems();
+                        else alert(result.message || '删除失败');
+                    } catch (error) { alert('网络异常'); }
+                }
+            });
+        });
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
+    }
+}
 
         function initTabBar() {
             document.querySelectorAll('.tab-item').forEach(tab => {
