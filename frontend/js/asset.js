@@ -33,8 +33,8 @@ async function fetchCollections() {
                         <div class="collection-total">累计投入 ¥${col.total_amount.toFixed(2)}</div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <button class="edit-collection-btn" data-id="${col.id}" data-name="${escapeHtml(col.name)}" data-total="${col.total_amount}">✏️</button>
-                        <button class="delete-collection-btn" data-id="${col.id}" data-name="${escapeHtml(col.name)}">🗑️</button>
+                        <button class="edit-collection-btn" data-id="${col.id}" data-name="${escapeHtml(col.name)}" data-total="${col.total_amount}">编辑</button>
+                        <button class="delete-collection-btn" data-id="${col.id}" data-name="${escapeHtml(col.name)}">删除</button>
                         <div class="collection-arrow">›</div>
                     </div>
                 </div>
@@ -97,18 +97,6 @@ async function fetchCollections() {
         container.innerHTML = '<div class="empty-state">加载失败，请检查网络</div>';
     }
 }
-
-// 防止XSS
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
 // ========= 弹窗控制 =========
 function showAddCollectionModal() {
     editingCollectionId = null;
