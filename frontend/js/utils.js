@@ -78,3 +78,13 @@ function showError(msg) {
 function showSuccess(msg) {
     alert(msg);
 }
+// ===== HTML 转义（防止 XSS） =====
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
